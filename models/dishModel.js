@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const DishSchema = new mongoose.Schema({
   dishName: {
@@ -33,4 +33,6 @@ const DishSchema = new mongoose.Schema({
   },
 });
 DishSchema.index({ dishName: 'text' });
-module.exports = mongoose.model('Dish', DishSchema);
+const Dish = mongoose.model('Dish', DishSchema);
+
+export default Dish;

@@ -1,4 +1,4 @@
-const { gql } = require('apollo-server');
+import gql from 'graphql-tag';
 
 const typeDefs = gql`
   type User {
@@ -7,6 +7,7 @@ const typeDefs = gql`
     lastname: String
     email: String
     created: String
+    role: Role
   }
   type Token {
     token: String
@@ -68,6 +69,7 @@ const typeDefs = gql`
     lastname: String!
     email: String!
     password: String!
+    role: String!
   }
   input authInput {
     email: String!
@@ -122,6 +124,11 @@ const typeDefs = gql`
     CANCELLED
   }
 
+  enum Role {
+    USER
+    ADMIN
+  }
+
   type Query {
     getUser(token: String!): User
     getUsers: [User]
@@ -167,4 +174,5 @@ const typeDefs = gql`
     deleteTodo(id: ID!): String
   }
 `;
-module.exports = typeDefs;
+const TyeDefs = typeDefs;
+export default TyeDefs;

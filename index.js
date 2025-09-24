@@ -1,36 +1,40 @@
-const { ApolloServer } = require('apollo-server');
-const typeDefs = require('./db/schema');
-const resolvers = require('./db/resolvers');
-const jwt = require('jsonwebtoken');
-const connectDB = require('./config/db');
-require('dotenv').config();
+import { ApolloServer } from '@apollo/server';
+import { startStandaloneServer } from '@apollo/server/standalone';
+import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
 
-//connect to the data base
+import typeDefs from './db/schema.js';
+import resolvers from './db/resolvers.js';
+import connectDB from './config/db.js';
+
+dotenv.config();
+
+// Connect to database
 connectDB();
-//server
+
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: ({ req }) => {
+  context: async ({ req }) => {
     const token = req.headers['authorization'] || '';
     if (token) {
       try {
         const user = jwt.verify(
-          token.replace('Bearer', ''),
+          token.replace('Bearer ', ''),
           process.env.SECRET_WORD
         );
-        return {
-          user,
-        };
+        return { user };
       } catch (error) {
-        console.log('Hubo un error');
-        console.log(error);
+        console.log('Token verification error:', error);
       }
     }
+    return {};
   },
 });
 
-//arrancar el servidor
-server.listen({ port: process.env.PORT || 4000 }).then(({ url }) => {
-  console.log(`server is running on port ${url}`);
+// Start server in standalone mode
+const { url } = await startStandaloneServer(server, {
+  listen: { port: process.env.PORT || 4000 },
 });
+
+console.log(`🚀 Server ready at ${url}`);

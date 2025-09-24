@@ -1,17 +1,19 @@
-const User = require('../models/user');
-const Dish = require('../models/dishModel');
-const Client = require('../models/clients');
-const Order = require('../models/order');
-const Todo = require('../models/toDo');
+import User from '../models/user.js';
+import Dish from '../models/dishModel.js';
+import Client from '../models/clients.js';
+import Order from '../models/order.js';
+import Todo from '../models/toDo.js';
 
-const bcryptjs = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+import bcryptjs from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
-const createToken = (user, secretWord, expiresIn) => {
-  const { id, email, name, lastname } = user;
+dotenv.config();
+
+const createToken = (user, secretWord) => {
+  const { id, email, name, lastname, role } = user;
   return jwt.sign(
-    { id, email, name, lastname },
+    { id, email, name, lastname, role },
     secretWord,
     {
       algorithm: 'HS256',
@@ -187,8 +189,7 @@ const resolvers = {
   Mutation: {
     newOrder: async (_, { input }, context) => {
       const { client } = input;
-      console.log('que grandoblehijodeputas pasa aqui', context);
-
+      console.log(context, 'my context');
       // Check if client exists
       let clientExists = await Client.findById(client);
       if (!clientExists) {
@@ -475,5 +476,5 @@ const resolvers = {
     },
   },
 };
-
-module.exports = resolvers;
+const Resolvers = resolvers;
+export default Resolvers;
