@@ -9,19 +9,28 @@ const typeDefs = gql`
     created: String
     role: Role
   }
+
   type Token {
     token: String
   }
-  type Dish {
+
+  type Home {
     id: ID
-    dishName: String
-    protein: String
-    carbohydrates: String
-    vegetables: String
-    inStock: Int
-    price: Float
-    created: String
+    name: String
+    areas: [Area]
   }
+
+  type Area {
+    name: String
+    tasks: [Todo]
+  }
+
+  type Todo {
+    id: ID
+    task: String!
+    complete: Boolean!
+  }
+
   type Client {
     id: ID
     name: String
@@ -58,12 +67,6 @@ const typeDefs = gql`
     user: [Client]
   }
 
-  type Todo {
-    id: ID
-    text: String!
-    complete: Boolean!
-  }
-
   input userInput {
     name: String!
     lastname: String!
@@ -75,21 +78,22 @@ const typeDefs = gql`
     email: String!
     password: String!
   }
-  input dishInput {
-    dishName: String!
-    protein: String!
-    carbohydrates: String!
-    vegetables: String!
-    inStock: Int!
-    price: Float!
+  input HomeInput {
+    name: String!
+    areas: [AreaInput]
   }
-  input dishInputUpdate {
-    dishName: String
-    protein: String
-    carbohydrates: String
-    vegetables: String
-    inStock: Int
-    price: Float
+  input AreaInput {
+    name: String
+    tasks: [TodoInput]
+  }
+  input TodoInput {
+    task: String!
+    complete: Boolean!
+  }
+
+  input homeInputUpdate {
+    name: String!
+    areas: [AreaInput]
   }
   input clientInput {
     name: String!
@@ -97,11 +101,6 @@ const typeDefs = gql`
     email: String!
     phoneNumber: String
     order: String!
-  }
-
-  input TodoInput {
-    text: String!
-    complete: Boolean!
   }
 
   input OrderGroupInput {
@@ -133,8 +132,8 @@ const typeDefs = gql`
     getUser(token: String!): User
     getUsers: [User]
 
-    getMenu: [Dish]
-    getDish(id: ID!): Dish
+    getHomes: [Home]
+    getHome(id: ID!): Home
 
     getClients: [Client]
     getClientUser: [Client]
@@ -147,15 +146,15 @@ const typeDefs = gql`
 
     bestClients: [TopClient]
     bestuser: [Topuser]
-    searchDish(text: String!): [Dish]
+    searchHome(text: String!): [Home]
 
     getTodos: [Todo]
   }
   type Mutation {
     #products
-    newDish(input: dishInput): Dish
-    updateDish(id: ID!, input: dishInputUpdate): Dish
-    deleteDish(id: ID!): String
+    newHome(input: HomeInput!): Home
+    updateHome(id: ID!, input: homeInputUpdate): Home
+    deleteHome(id: ID!): String
 
     newUser(input: userInput): User
     authUser(input: authInput): Token

@@ -1,5 +1,5 @@
 import User from '../models/user.js';
-import Dish from '../models/dishModel.js';
+import Home from '../models/homeModel.js';
 import Client from '../models/clients.js';
 import Order from '../models/order.js';
 import Todo from '../models/toDo.js';
@@ -30,20 +30,20 @@ const resolvers = {
       const userId = await jwt.verify(token, process.env.SECRET_WORD);
       return userId;
     },
-    getMenu: async () => {
+    getHomes: async () => {
       try {
-        const dish = await Dish.find({});
+        const dish = await Home.find({});
         return dish;
       } catch (error) {
         console.log(error);
       }
     },
-    getDish: async (_, { id }) => {
-      const dishId = await Dish.findById(id);
-      if (!dishId) {
-        throw new Error('Dish does not exists');
+    getHome: async (_, { id }) => {
+      const homeId = await Home.findById(id);
+      if (!homeId) {
+        throw new Error('Home does not exists');
       }
-      return dishId;
+      return homeId;
     },
     getClients: async () => {
       try {
@@ -176,13 +176,13 @@ const resolvers = {
 
       return users;
     },
-    searchDish: async (_, { text }) => {
-      const dishes = await Dish.find({
+    searchHome: async (_, { text }) => {
+      const home = await Home.find({
         $text: {
           $search: text,
         },
       });
-      return dishes;
+      return home;
     },
   },
 
@@ -334,44 +334,45 @@ const resolvers = {
         token: createToken(userExists, process.env.SECRET_WORD),
       };
     },
-    newDish: async (_, { input }) => {
+    newHome: async (_, { input }) => {
       console.log(input, 'que pasa aqui');
-      const { dishName } = input;
-      const dishExists = await Dish.findOne({ dishName });
-      if (dishExists) {
-        throw new Error('Dish already exist');
+      const { name } = input;
+      const homeExists = await Home.findOne({ name });
+      if (homeExists) {
+        throw new Error('Home already exist');
       }
       try {
-        const dish = new Dish(input);
-        const result = await dish.save();
+        const home = new Home(input);
+        const result = await home.save();
         return result;
       } catch (error) {
         console.log(error);
       }
     },
-    updateDish: async (_, { id, input }) => {
-      // revisar si el producto existe o no
-      let dish = await Dish.findById(id);
 
-      if (!dish) {
-        throw new Error('Dish does not exist');
+    updateHome: async (_, { id, input }) => {
+      // revisar si el producto existe o no
+      let home = await Home.findById(id);
+
+      if (!home) {
+        throw new Error('Home does not exist');
       }
 
       // guardarlo en la base de datos
-      dish = await Dish.findOneAndUpdate({ _id: id }, input, { new: true });
-      console.log(dish);
-      return dish;
+      home = await Home.findOneAndUpdate({ _id: id }, input, { new: true });
+      console.log(home);
+      return home;
     },
-    deleteDish: async (_, { id }) => {
+    deleteHome: async (_, { id }) => {
       // revisar si el producto existe o no
-      let dishDelete = await Dish.findById(id);
+      let homeDelete = await Home.findById(id);
 
-      if (!dishDelete) {
-        throw new Error('Dish does not exist');
+      if (!homeDelete) {
+        throw new Error('Home does not exist');
       }
-      await dishDelete.deleteOne({ _id: id });
+      await homeDelete.deleteOne({ _id: id });
 
-      return 'Dish Delete Succesfull';
+      return 'Home Delete Succesfull';
     },
     newClient: async (_, { input }, context) => {
       console.log(context, 'here the contex', input);
