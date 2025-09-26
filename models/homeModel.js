@@ -34,7 +34,7 @@ const HomeSchema = new mongoose.Schema({
     default: Date.now(),
   },
 });
-HomeSchema.index({ dishName: 'text' });
+HomeSchema.index({ homeName: 'text' });
 const Home = mongoose.model('Home', HomeSchema);
 
 export default Home;

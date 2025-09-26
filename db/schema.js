@@ -21,6 +21,7 @@ const typeDefs = gql`
   }
 
   type Area {
+    id: ID
     name: String
     tasks: [Todo]
   }
@@ -82,10 +83,12 @@ const typeDefs = gql`
     name: String!
     areas: [AreaInput]
   }
+
   input AreaInput {
     name: String
     tasks: [TodoInput]
   }
+
   input TodoInput {
     task: String!
     complete: Boolean!
@@ -95,6 +98,7 @@ const typeDefs = gql`
     name: String!
     areas: [AreaInput]
   }
+
   input clientInput {
     name: String!
     lastname: String!
@@ -134,6 +138,8 @@ const typeDefs = gql`
 
     getHomes: [Home]
     getHome(id: ID!): Home
+    getHomeAreas(id: ID!): [Area] # trae solo las áreas de un Home
+    getHomeTask(id: ID!): [Todo]
 
     getClients: [Client]
     getClientUser: [Client]
@@ -155,6 +161,14 @@ const typeDefs = gql`
     newHome(input: HomeInput!): Home
     updateHome(id: ID!, input: homeInputUpdate): Home
     deleteHome(id: ID!): String
+    newArea(id: ID!, input: homeInputUpdate): Area
+    updateArea(homeId: ID!, areaId: ID!, input: AreaInput): Area
+    deleteArea(homeId: ID!, areaId: ID!): String
+    newTask(homeId: ID!, areaId: ID!, input: TodoInput): Todo
+    updateTask(homeId: ID!, areaId: ID!, taskId: ID!, input: TodoInput): Todo
+    deleteTask(homeId: ID!, areaId: ID!, taskId: ID!): String
+
+    #users
 
     newUser(input: userInput): User
     authUser(input: authInput): Token

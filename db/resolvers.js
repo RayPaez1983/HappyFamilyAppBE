@@ -1,7 +1,7 @@
+/* eslint-disable no-empty-pattern */
 import User from '../models/user.js';
 import Home from '../models/homeModel.js';
 import Client from '../models/clients.js';
-import Order from '../models/order.js';
 import Todo from '../models/toDo.js';
 
 import bcryptjs from 'bcryptjs';
@@ -32,8 +32,8 @@ const resolvers = {
     },
     getHomes: async () => {
       try {
-        const dish = await Home.find({});
-        return dish;
+        const home = await Home.find({});
+        return home;
       } catch (error) {
         console.log(error);
       }
@@ -45,6 +45,19 @@ const resolvers = {
       }
       return homeId;
     },
+
+    getHomeAreas: async (_, { id }) => {
+      const home = await Home.findById(id);
+      if (!home) throw new Error('Home not found');
+      return home.areas;
+    },
+
+    getHomeTask: async (_, { id }) => {
+      const home = await Home.findById(id);
+      if (!home) throw new Error('Home not found');
+      return home.areas.flatMap((area) => area.tasks);
+    },
+
     getClients: async () => {
       try {
         const clients = await Client.find({});
@@ -84,98 +97,20 @@ const resolvers = {
       }
       return client;
     },
-    getOrders: async () => {
-      try {
-        const order = await Order.find({});
-        return order;
-      } catch (error) {
-        console.log(error);
-      }
-    },
-    getTodos: async () => {
-      try {
-        const todo = await Todo.find({});
-        return todo;
-      } catch (error) {
-        console.log(error);
-      }
-    },
-    getOrder: async (_, { id }, context) => {
-      const order = await Order.findById(id);
-      console.log('get order:', order, context);
-      if (!order) {
-        throw new Error('Order does not exists');
-      }
-      if (!order) {
-        throw new Error('Check your credentials');
-      }
-      return order;
-    },
-    getOrdersUser: async (_, {}, context) => {
-      console.log(context);
-      try {
-        const order = await Order.find({ user: context.user.id });
-        return order;
-      } catch (error) {
-        console.log(error);
-      }
-    },
-    getOrderState: async (_, { state }, context) => {
-      const orders = await Order.find({
-        user: context.user.id,
-        state,
-      });
-      return orders;
-    },
-    bestClients: async () => {
-      console.log(Order);
-      const clients = await Order.aggregate([
-        { $match: { state: 'COMPLETED' } },
-        {
-          $group: {
-            _id: '$client',
-            total: { $sum: '$total' },
-          },
-        },
-        {
-          $lookup: {
-            from: 'clients',
-            localField: '_id',
-            foreignField: '_id',
-            as: 'client',
-          },
-        },
-      ]);
 
-      return clients;
-    },
-    bestuser: async () => {
-      const users = await Order.aggregate([
-        { $match: { state: 'COMPLETED' } },
-        {
-          $group: {
-            _id: '$user',
-            total: { $sum: '$total' },
-          },
-        },
-        {
-          $lookup: {
-            from: 'users',
-            localField: '_id',
-            foreignField: '_id',
-            as: 'user',
-          },
-        },
-        {
-          $limit: 3,
-        },
-        {
-          $sort: { total: -1 },
-        },
-      ]);
+    getTodos: async (_, { homeId }) => {
+      try {
+        const home = await Home.findById(homeId);
+        if (!home) throw new Error('Home not found');
 
-      return users;
+        // Extraer solo los tasks de todas las áreas
+        const allTasks = home.areas.flatMap((area) => area.tasks);
+        return allTasks;
+      } catch (error) {
+        throw new Error(error.message);
+      }
     },
+
     searchHome: async (_, { text }) => {
       const home = await Home.find({
         $text: {
@@ -187,71 +122,6 @@ const resolvers = {
   },
 
   Mutation: {
-    newOrder: async (_, { input }, context) => {
-      const { client } = input;
-      console.log(context, 'my context');
-      // Check if client exists
-      let clientExists = await Client.findById(client);
-      if (!clientExists) {
-        throw new Error('Client does not exist');
-      }
-
-      // Check if the user owns the client
-
-      // Check if there is enough dish in the stock
-      const insufficientStock = [];
-      const selectedDishIds = [];
-
-      for await (const item of input.order) {
-        const { id, quantity } = item;
-
-        // Check if the dish has enough stock
-        const plate = await Dish.findById(id);
-        if (!plate || quantity > plate.inStock) {
-          insufficientStock.push(plate?.dishName || 'Unknown Dish');
-        }
-
-        // Check if the dish has already been included in this order
-        if (selectedDishIds.includes(id)) {
-          throw new Error(`Dish with ID ${id} is duplicated in the order`);
-        }
-
-        selectedDishIds.push(id);
-      }
-
-      if (insufficientStock.length > 0) {
-        throw new Error(
-          `The following dishes are out of stock: ${insufficientStock.join(
-            ', '
-          )}`
-        );
-      }
-
-      // Create new order
-      const newOrderDish = new Order(input);
-
-      // Assign a user
-
-      // Save in the database
-      try {
-        await newOrderDish.save();
-
-        // If the order is successfully saved, update the stock
-        for await (const item of input.order) {
-          const { id, quantity } = item;
-          const plate = await Dish.findById(id);
-          plate.inStock -= quantity;
-          await plate.save();
-        }
-
-        console.log('Order and stock updated successfully');
-        return newOrderDish;
-      } catch (error) {
-        console.error('Error saving order:', error);
-        throw new Error('Failed to create a new order');
-      }
-    },
-
     newUser: async (_, { input }) => {
       const { email, password } = input;
 
@@ -335,7 +205,7 @@ const resolvers = {
       };
     },
     newHome: async (_, { input }) => {
-      console.log(input, 'que pasa aqui');
+      console.log(input.areas, 'que pasa aqui');
       const { name } = input;
       const homeExists = await Home.findOne({ name });
       if (homeExists) {
@@ -374,6 +244,57 @@ const resolvers = {
 
       return 'Home Delete Succesfull';
     },
+
+    newArea: async (_, { id, input }) => {
+      let home = await Home.findById(id);
+      if (!home) {
+        throw new Error('Home does not exist');
+      }
+      home.areas.push(input);
+      home = await Home.findOneAndUpdate({ _id: id }, home, { new: true });
+      return home.areas[home.areas.length - 1];
+    },
+    updateArea: async (_, { homeId, areaId, input }) => {
+      const home = await Home.findById(homeId);
+      if (!home) {
+        throw new Error('Home does not exist');
+      }
+      const area = home.areas.id(areaId);
+      if (!area) {
+        throw new Error('Area does not exist');
+      }
+      area.set(input);
+      await home.save();
+      return area;
+    },
+    deleteArea: async (_, { homeId, areaId }) => {
+      const home = await Home.findById(homeId);
+      if (!home) {
+        throw new Error('Home does not exist');
+      }
+      const area = home.areas.id(areaId);
+      if (!area) {
+        throw new Error('Area does not exist');
+      }
+      area.remove();
+      await home.save();
+      return 'Area deleted successfully';
+    },
+
+    newTask: async (_, { homeId, areaId, input }) => {
+      const home = await Home.findById(homeId);
+      if (!home) {
+        throw new Error('Home does not exist');
+      }
+      const area = home.areas.id(areaId);
+      if (!area) {
+        throw new Error('Area does not exist');
+      }
+      area.tasks.push(input);
+      await home.save();
+      return area.tasks[area.tasks.length - 1];
+    },
+
     newClient: async (_, { input }, context) => {
       console.log(context, 'here the contex', input);
       const { email } = input;
@@ -424,56 +345,6 @@ const resolvers = {
       }
       user = await User.findOneAndDelete({ _id: id });
       return 'Client was deleted';
-    },
-    updateOrder: async (_, { id, input }, context) => {
-      console.log(id);
-      const { client } = input;
-      //check if the order exits
-      const orderExist = await Order.findById(id);
-      if (!orderExist) {
-        throw new Error('Order does not exist');
-      }
-      // check if client exist
-      const clientExist = await Client.findById(client);
-      if (!clientExist) {
-        throw new Error('Client does not exist');
-      }
-
-      //check if the user owns the order and the client
-      if (clientExist.user.toString() !== context.user.id) {
-        throw new Error('Check your credentials');
-      }
-      // Check if there is enough dish in the stock
-      if (input.order) {
-        for await (const item of input.order) {
-          const { id } = item;
-          const plate = await Dish.findById(id);
-          if (item.quantity > plate.inStock) {
-            throw new Error(`The Dish: ${plate.dishName} is out of stock`);
-          } else {
-            //
-            plate.inStock = plate.inStock - item.quantity;
-
-            await plate.save();
-          }
-        }
-      }
-
-      // save the order
-
-      const result = await Order.findOneAndUpdate({ _id: id }, input, {
-        new: true,
-      });
-      return result;
-    },
-    deleteOrder: async (_, { id }, context) => {
-      let order = await Order.findById(id);
-      if (!order) {
-        throw new Error('Order does not exist');
-      }
-
-      await Order.findOneAndDelete({ _id: id });
-      return 'Order was deleted';
     },
   },
 };
