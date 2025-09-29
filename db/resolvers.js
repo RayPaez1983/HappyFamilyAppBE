@@ -57,7 +57,11 @@ const resolvers = {
       if (!home) throw new Error('Home not found');
       return home.areas.flatMap((area) => area.tasks);
     },
-
+    getFinance: async (_, { id }) => {
+      const home = await Home.findById(id);
+      if (!home) throw new Error('Home not found');
+      return home.finance;
+    },
     getClients: async () => {
       try {
         const clients = await Client.find({});

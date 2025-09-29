@@ -18,6 +18,7 @@ const typeDefs = gql`
     id: ID
     name: String
     areas: [Area]
+    finance: Finance
   }
 
   type Area {
@@ -30,6 +31,19 @@ const typeDefs = gql`
     id: ID
     task: String!
     complete: Boolean!
+  }
+  type Expenses {
+    fixedExpenses: Float!
+    entertainment: Float!
+    discretionarySpending: Float!
+  }
+
+  type Finance {
+    id: ID
+    expenses: Expenses
+    income: Float
+    saving: Float
+    total: Float
   }
 
   type Client {
@@ -82,6 +96,7 @@ const typeDefs = gql`
   input HomeInput {
     name: String!
     areas: [AreaInput]
+    finance: FinanceInput!
   }
 
   input AreaInput {
@@ -97,6 +112,7 @@ const typeDefs = gql`
   input homeInputUpdate {
     name: String!
     areas: [AreaInput]
+    finance: FinanceInput
   }
 
   input clientInput {
@@ -105,6 +121,19 @@ const typeDefs = gql`
     email: String!
     phoneNumber: String
     order: String!
+  }
+
+  input ExpensesInput {
+    fixedExpenses: Float!
+    entertainment: Float!
+    discretionarySpending: Float!
+  }
+
+  input FinanceInput {
+    expenses: ExpensesInput!
+    income: Float!
+    saving: Float! # en vez de Int!
+    total: Float!
   }
 
   input OrderGroupInput {
@@ -140,6 +169,7 @@ const typeDefs = gql`
     getHome(id: ID!): Home
     getHomeAreas(id: ID!): [Area] # trae solo las áreas de un Home
     getHomeTask(id: ID!): [Todo]
+    getFinance(id: ID!): Finance
 
     getClients: [Client]
     getClientUser: [Client]
@@ -161,12 +191,21 @@ const typeDefs = gql`
     newHome(input: HomeInput!): Home
     updateHome(id: ID!, input: homeInputUpdate): Home
     deleteHome(id: ID!): String
+
+    #areas
     newArea(id: ID!, input: homeInputUpdate): Area
     updateArea(homeId: ID!, areaId: ID!, input: AreaInput): Area
     deleteArea(homeId: ID!, areaId: ID!): String
+
+    #tasks
     newTask(homeId: ID!, areaId: ID!, input: TodoInput): Todo
     updateTask(homeId: ID!, areaId: ID!, taskId: ID!, input: TodoInput): Todo
     deleteTask(homeId: ID!, areaId: ID!, taskId: ID!): String
+
+    #finance
+    newFinance(input: FinanceInput): Finance
+    updateFinance(id: ID!, input: FinanceInput): Finance
+    deleteFinance(id: ID!): String
 
     #users
 

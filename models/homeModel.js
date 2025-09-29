@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { FinanceSchema } from './finance.js';
 
 const TodosSchema = new mongoose.Schema({
   task: {
@@ -29,6 +30,7 @@ const HomeSchema = new mongoose.Schema({
     unique: true,
   },
   areas: [AreaSchema],
+  finance: FinanceSchema,
   created: {
     type: Date,
     default: Date.now(),
